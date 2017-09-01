@@ -23,8 +23,8 @@ enum
 #pragma pack(push, 1)
 struct Message
 {
-	unsigned char typeID;
-	int meme;
+	RakNet::MessageID id;
+	char meme[5];
 };
 #pragma pack(pop)
 
@@ -97,11 +97,16 @@ int main(void)
 				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);*/
 
 				Message msg;
-				msg.typeID = ID_MESSAGE;
-				msg.meme = 420;
-				//strcpy(msg.message, "hello");
+				msg.id = ID_MESSAGE;
+				//msg.meme = 420;
+				strcpy(msg.meme, "hello");
 
 				//printf("\n\n%i\n\n", msg->meme);
+				/*RakNet::BitStream bsOut;
+				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
+				bsOut.Write((RakNet::BitStream*)&msg);
+				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);*/
+
 
 				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
@@ -146,16 +151,12 @@ int main(void)
 
 			case ID_MESSAGE:
 			{
-				RakNet::Packet* pak = peer->Receive();
-				Message* msg = (Message*)pak->data;
-				printf("\n\n%i\n\n", (int)msg->meme);
+				Message* msg = (Message*)packet->data;
+				printf("\n\n%s\n\n", (int)msg->meme);
 			}
 			break;
 			default:
-				printf("Message with identifier %i has arrived.\n", packet->data[0]);
-				RakNet::Packet* pak = peer->Receive();
-				Message* msg = (Message*)pak->data;
-				printf("\n\n%i\n\n", (int)msg->meme);
+				
 				break;
 			}
 		}
