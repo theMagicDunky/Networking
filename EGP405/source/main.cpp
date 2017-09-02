@@ -152,7 +152,7 @@ int main(void)
 			case ID_MESSAGE:
 			{
 				Message* msg = (Message*)packet->data;
-				printf("\n\n%s\n\n", (int)msg->meme);
+				printf("\n\n%s\n\n", msg->meme);
 			}
 			break;
 			default:
