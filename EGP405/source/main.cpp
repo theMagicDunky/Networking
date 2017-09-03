@@ -24,7 +24,7 @@ enum
 struct Message
 {
 	RakNet::MessageID id;
-	char meme[5];
+	char meme[100];
 };
 #pragma pack(pop)
 
@@ -89,24 +89,9 @@ int main(void)
 			{
 				printf("Our connection request has been accepted.\n");
 
-				// Use a BitStream to write a custom user message
-				// Bitstreams are easier to use than sending casted structures, and handle endian swapping automatically
-				/*RakNet::BitStream bsOut;
-				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-				bsOut.Write("Hello world");
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);*/
-
 				Message msg;
 				msg.id = ID_MESSAGE;
-				//msg.meme = 420;
-				strcpy(msg.meme, "hello");
-
-				//printf("\n\n%i\n\n", msg->meme);
-				/*RakNet::BitStream bsOut;
-				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-				bsOut.Write((RakNet::BitStream*)&msg);
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);*/
-
+				strcpy(msg.meme, "\nHi I'm a client, I will disconnect in 5 seconds\n");
 
 				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
@@ -114,10 +99,12 @@ int main(void)
 			case ID_NEW_INCOMING_CONNECTION:
 			{
 				printf("A connection is incoming.\n");
-				RakNet::BitStream bsOut;
-				bsOut.Write((RakNet::MessageID)ID_GAME_MESSAGE_1);
-				bsOut.Write("Welcome to the server!");
-				peer->Send(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+
+				Message msg;
+				msg.id = ID_MESSAGE;
+				strcpy(msg.meme, "\nWelcome, I will be your server today\n");
+
+				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
 				break;
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
@@ -152,7 +139,20 @@ int main(void)
 			case ID_MESSAGE:
 			{
 				Message* msg = (Message*)packet->data;
-				printf("\n\n%s\n\n", msg->meme);
+				printf("%s", msg->meme);
+
+				if (!isServer)
+				{
+					Sleep(5000);
+
+					Message msg;
+					msg.id = ID_MESSAGE;
+					strcpy(msg.meme, "I'm outta here\n");
+
+					peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+
+					peer->CloseConnection(packet->systemAddress, true);
+				}
 			}
 			break;
 			default:
