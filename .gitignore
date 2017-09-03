@@ -10,7 +10,8 @@ bin*/
 lib*/
 gen*/
 build*/
-[dD]ebug*/
+*Debug*
+*debug*
 [rR]elease*/
 ipch/
 xcuserdata/
