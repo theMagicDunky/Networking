@@ -1,3 +1,20 @@
+/*
+	Duncan Carroll - 0894235
+	EGP-405-02
+	Lab 1 9/4/17
+
+	Certificate of Authenticity:
+
+	I certify that this work is entirely my own.
+	The assessor of this project may reproduce this project
+	and provide copies to other academic staff, and/or communicate a copy of
+	this project to a plagiarism - checking service, which may retain a copy of the	project on its database.
+*/
+
+/*
+	Some code taken from the RakNet manual - http://www.jenkinssoftware.com/raknet/manual/
+	as per instruction of the assignment
+*/
 
 #include <stdio.h>
 #include <iostream>
@@ -5,7 +22,7 @@
 #include "RakNet/RakPeerInterface.h"
 #include "RakNet/MessageIdentifiers.h"
 #include "RakNet/BitStream.h"
-#include "RakNet/RakNetTypes.h"  // MessageID
+#include "RakNet/RakNetTypes.h" 
 
 unsigned int maxClients;
 unsigned short serverPort;
@@ -15,6 +32,7 @@ enum GameMessages
 	ID_GAME_MESSAGE_1 = ID_USER_PACKET_ENUM + 1
 };
 
+//Custom enum for when a mesage is sent using the Message struct
 enum
 {
 	ID_MESSAGE = ID_USER_PACKET_ENUM
@@ -23,8 +41,10 @@ enum
 #pragma pack(push, 1)
 struct Message
 {
+	//identifier for reading what type of packet it is
 	RakNet::MessageID id;
-	char meme[100];
+	//fixed string size for message to be sent
+	char message[100];
 };
 #pragma pack(pop)
 
@@ -61,13 +81,13 @@ int main(void)
 		peer->SetMaximumIncomingConnections(maxClients);
 	}
 	else {
+		//automatically assigning port 127.0.0.1 per instruction of assignment
 		printf("Using ip 127.0.0.1\n");
 		strcpy(str, "127.0.0.1");
 		printf("Starting the client.\n");
 		printf("Enter server port number.\n");
 		fscanf(stdin, "%i", &serverPort);
 		peer->Connect(str, serverPort, 0, 0);
-
 	}
 
 	while (1)
@@ -89,10 +109,12 @@ int main(void)
 			{
 				printf("Our connection request has been accepted.\n");
 
+				//create Message struct and set packet identifier and the string to be sent
 				Message msg;
 				msg.id = ID_MESSAGE;
-				strcpy(msg.meme, "\nHi I'm a client, I will disconnect in 5 seconds\n");
+				strcpy(msg.message, "\nHi I'm a client, I will disconnect in 5 seconds\n");
 
+				//Sending Mesage struct as a packet
 				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
 				break;
@@ -102,7 +124,7 @@ int main(void)
 
 				Message msg;
 				msg.id = ID_MESSAGE;
-				strcpy(msg.meme, "\nWelcome, I will be your server today\n");
+				strcpy(msg.message, "\nWelcome, I will be your server today\n");
 
 				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
@@ -135,19 +157,20 @@ int main(void)
 				printf("%s\n", rs.C_String());
 			}
 			break;
-
+			//Case for receiving packet with Message struct
 			case ID_MESSAGE:
 			{
 				Message* msg = (Message*)packet->data;
-				printf("%s", msg->meme);
+				printf("%s", msg->message);
 
+				//when client receives message struct from server it waits 5 seconds then send goodbye message and disconnects
 				if (!isServer)
 				{
 					Sleep(5000);
 
 					Message msg;
 					msg.id = ID_MESSAGE;
-					strcpy(msg.meme, "I'm outta here\n");
+					strcpy(msg.message, "I'm outta here\n");
 
 					peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 
