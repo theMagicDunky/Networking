@@ -35,17 +35,44 @@ enum GameMessages
 //Custom enum for when a mesage is sent using the Message struct
 enum
 {
-	ID_MESSAGE = ID_USER_PACKET_ENUM
+	ID_MESSAGE = ID_USER_PACKET_ENUM,
+
+	// handshake exchange
+	ID_USERNAME,			//client responds to connection by sending username
+	ID_NEW_CLIENT_JOINED,	//server tells all clients someone joined
+	ID_CLIENT_NUMBER,		//serer associates username with client number
+
+	//message exchange
+	ID_CHAT_MESSAGE,		//sent by anyone
+	
+	//misc
+	ID_SEND_ALL				//sent by client
 };
 
+
+
 #pragma pack(push, 1)
-struct Message
+//struct Message
+//{
+//	//identifier for reading what type of packet it is
+//	RakNet::MessageID id;
+//	//fixed string size for message to be sent
+//	char message[100];
+//};
+
+
+struct UsernameMessage
 {
-	//identifier for reading what type of packet it is
-	RakNet::MessageID id;
-	//fixed string size for message to be sent
-	char message[100];
+	char MessageID;
+	char username[31];
 };
+
+struct ClientNumberMessage
+{
+	char MessageID;
+	unsigned int clientNumber;
+};
+
 #pragma pack(pop)
 
 int main(void)
@@ -109,24 +136,42 @@ int main(void)
 			{
 				printf("Our connection request has been accepted.\n");
 
-				//create Message struct and set packet identifier and the string to be sent
-				Message msg;
-				msg.id = ID_MESSAGE;
-				strcpy(msg.message, "\nHi I'm a client, I will disconnect in 5 seconds\n");
+				////create Message struct and set packet identifier and the string to be sent
+				//Message msg;
+				//msg.id = ID_MESSAGE;
+				//strcpy(msg.message, "\nHi I'm a client, I will disconnect in 5 seconds\n");
 
-				//Sending Mesage struct as a packet
-				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				////Sending Mesage struct as a packet
+				//peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+
+				UsernameMessage username = { ID_USERNAME, "WizDaddy" };
+				peer->Send((char*)&username, sizeof(username), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 			}
 				break;
+			case ID_USERNAME:
+			{
+				// we are server, store username in dictionary
+				//let everyone know who joined
+				UsernameMessage *username = (UsernameMessage*)packet->data;
+
+				username->MessageID = ID_NEW_CLIENT_JOINED;
+				peer->Send((char*)&username, sizeof(username), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, true);
+
+				//send new client their id
+				ClientNumberMessage clientNumber = { ID_CLIENT_NUMBER, 0 };
+
+				peer->Send((char*)&clientNumber, sizeof(clientNumber), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				break;
+			}
 			case ID_NEW_INCOMING_CONNECTION:
 			{
 				printf("A connection is incoming.\n");
 
-				Message msg;
+				/*Message msg;
 				msg.id = ID_MESSAGE;
 				strcpy(msg.message, "\nWelcome, I will be your server today\n");
 
-				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);*/
 			}
 				break;
 			case ID_NO_FREE_INCOMING_CONNECTIONS:
@@ -148,7 +193,7 @@ int main(void)
 					printf("Connection lost.\n");
 				}
 				break;
-			case ID_GAME_MESSAGE_1:
+			/*case ID_GAME_MESSAGE_1:
 			{
 				RakNet::RakString rs;
 				RakNet::BitStream bsIn(packet->data, packet->length, false);
@@ -156,27 +201,27 @@ int main(void)
 				bsIn.Read(rs);
 				printf("%s\n", rs.C_String());
 			}
-			break;
+			break;*/
 			//Case for receiving packet with Message struct
-			case ID_MESSAGE:
-			{
-				Message* msg = (Message*)packet->data;
-				printf("%s", msg->message);
+			//case ID_MESSAGE:
+			//{
+			//	Message* msg = (Message*)packet->data;
+			//	printf("%s", msg->message);
 
-				//when client receives message struct from server it waits 5 seconds then send goodbye message and disconnects
-				if (!isServer)
-				{
-					Sleep(5000);
+			//	//when client receives message struct from server it waits 5 seconds then send goodbye message and disconnects
+			//	if (!isServer)
+			//	{
+			//		Sleep(5000);
 
-					Message msg;
-					msg.id = ID_MESSAGE;
-					strcpy(msg.message, "I'm outta here\n");
+			//		Message msg;
+			//		msg.id = ID_MESSAGE;
+			//		strcpy(msg.message, "I'm outta here\n");
 
-					peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+			//		peer->Send((char*)&msg, sizeof(msg), HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
 
-					peer->CloseConnection(packet->systemAddress, true);
-				}
-			}
+			//		peer->CloseConnection(packet->systemAddress, true);
+			//	}
+			//}
 			break;
 			default:
 				
