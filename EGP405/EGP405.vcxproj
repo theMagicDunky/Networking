@@ -141,6 +141,11 @@
   <ItemGroup>
     <ClCompile Include="main_architecture.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ApplicationState.h" />
+    <ClInclude Include="GameLocalState.h" />
+    <ClInclude Include="LobbyState.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

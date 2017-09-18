@@ -1,16 +1,12 @@
 // INTRO TO NETWORKED ARCHITECTURE
 
 #include <Windows.h>
+#include "LobbyState.h"
+#include "GameLocalState.h"
 
 struct KeyboardState
 {
-	unsigned char keyboard[256]
-};
-
-struct ApplicationState
-{
-	unsigned int running;
-	KeyboardState keyState[1];
+	unsigned char keyboard[256];
 };
 
 void updateInput(KeyboardState* keyState)
@@ -44,8 +40,13 @@ void render(const ApplicationState* state)
 
 int main()
 {
-	ApplicationState appState[1];
-	appState->running = 1;
+	ApplicationState* appState;
+	LobbyState lobby[1];
+	GameLocalState gameState[1];
+
+	appState = lobby;
+
+	/*appState->running = 1;
 
 	while (appState->running)
 	{
@@ -56,7 +57,7 @@ int main()
 		updateState(appState);
 
 		render(appState);
-	}
+	}*/
 
 	return 0;
 }
